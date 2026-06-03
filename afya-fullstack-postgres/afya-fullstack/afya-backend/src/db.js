@@ -5,17 +5,20 @@ import pg from "pg";
 
 const { Pool } = pg;
 
-const connectionString = process.env.DATABASE_URL;
-if (!connectionString) {
+const rawConnectionString = process.env.DATABASE_URL;
+if (!rawConnectionString) {
   console.warn("[db] DATABASE_URL is not set. Set it to your Postgres connection string.");
 }
 
-export const pool = new Pool({
-  connectionString,
-  // DigitalOcean managed Postgres requires SSL. Locally (no SSL) this is harmless.
-  ssl: connectionString && !connectionString.includes("localhost")
-    ? { rejectUnauthorized: false }
-    : false,
+const connectionString = rawConnectionString
+  ? rawConnectionString.replace(/([?&])sslmode=[^&]*(&|$)/, (_m, p1, p2) => (p2 === "&" ? p1 : "")).replace(/[?&]$/, "")
+  : rawConnectionString;
+
+const isLocal = connectionString && connectionString.includes("localhost");
+
+export const pool = new Pool({connectionString,
+
+ssl: isLocal ? false : { rejectUnauthorized: false },
 });
 
 // query helper: q(text, params) -> rows; q1(...) -> first row or null
