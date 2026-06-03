@@ -17,7 +17,7 @@ const connectionString = rawConnectionString
 const isLocal = connectionString && connectionString.includes("localhost");
 
 export const pool = new Pool({connectionString,
-
+                              
 ssl: isLocal ? false : { rejectUnauthorized: false },
 });
 
